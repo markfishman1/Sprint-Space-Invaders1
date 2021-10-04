@@ -1,0 +1,44 @@
+body {
+    background-color: rgb(156, 142, 142);
+    color: white;
+    text-align: center;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.modal {
+    background-color: greenyellow;
+    display: none;
+    height: 100px;
+    width: 150px;
+}
+
+.modal span {
+    color: black;
+}
+
+.cell {
+    width: 40px;
+    height: 40px;
+    text-align: center;
+    font-size: 1.5em;
+    border-radius: 3px;
+    /* color: blue; */
+    /* margin: auto; */
+}
+
+.sky {
+    background-color: rgb(55, 55, 121);
+}
+
+.earth {
+    background-color: chartreuse;
+}
+
+.board-container {
+    background-color: rgb(167, 156, 156);
+    width: 605px;
+    height: 650px;
+    border: 7px solid black;
+    border-radius: 20px;
+    margin: 0 auto;
+}

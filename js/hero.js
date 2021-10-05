@@ -1,5 +1,5 @@
 'use strict'
-const LASER_SPEED = 80;
+var LASER_SPEED = 80;
 var gHero = {
     pos: { i: 12, j: 5 },
     isShoot: false
@@ -16,73 +16,110 @@ function createHero(gBoard) {
 }
 
 function moveHero(ev) {
+    if (gGame.isOn) {
+        var nextLocation = getNextLocation(ev);
+        if (nextLocation.j > BOARD_SIZE - 1 || nextLocation.j < 0) return
 
-    var nextLocation = getNextLocation(ev);
-    console.log(nextLocation);
-    if (nextLocation.j > BOARD_SIZE - 1 || nextLocation.j < 0) return
+        //Make last position empty
+        gBoard[gHero.pos.i][gHero.pos.j].gameObject = '';
+        updateCell(gHero.pos, '');
+        //Update new position:
+        //Model
+        gHero.pos.j = nextLocation.j
+        //Dom
+        updateCell(gHero.pos, HERO);
 
-    //Make last position empty
-    gBoard[gHero.pos.i][gHero.pos.j].gameObject = '';
-    updateCell(gHero.pos, '');
-    //Update new position:
-    //Model
-    gHero.pos.j = nextLocation.j
-    //Dom
-    updateCell(gHero.pos, HERO);
+    }
 
 }
-
-function shoot(ev) {
-    if (ev.code === 'Space' && !gHero.isShoot) {
-        gHero.isShoot = true;
-        gLaser.pos.i = gHero.pos.i - 1;
-        gLaser.pos.j = gHero.pos.j;
-
-        //Update fisrt laser position
-        gBoard[gLaser.pos.i][gLaser.pos.i].gameObject = LASER;
-        updateCell(gLaser.pos, LASER);
-        //Starts Laser Interval
-        gLaserInterval = setInterval(blinkLaser, LASER_SPEED, gLaser.pos);
+function shooting() {
+    if (gIsLightingShoot) {
+        LASER_SPEED = 40;
+        LASER = '⚡';
+    } else {
+        LASER_SPEED = 80;
+        LASER = '⤊';
     }
+    gHero.isShoot = true;
+    gLaser.pos.i = gHero.pos.i - 1;
+    gLaser.pos.j = gHero.pos.j;
+    //Update fisrt laser position
+    gBoard[gLaser.pos.i][gLaser.pos.i].gameObject = LASER;
+    updateCell(gLaser.pos, LASER);
+    //Starts Laser Interval
+    gLaserInterval = setInterval(blinkLaser, LASER_SPEED, gLaser.pos);
+
+}
+function shoot(ev) {
+    switch (ev.key) {
+        case ' ':
+            if (!gHero.isShoot) shooting();
+            break;
+        case 'n':
+            if (gHero.isShoot) blowThemUp();
+            break;
+        case 'x': if (!gHero.isShoot) laserShoot();
+
+    }
+}
+
+function laserShoot() {
+    gLightingShots--;
+    var str = '';
+    for (var i = 0; i < gLightingShots; i++) {
+        str += '⚡';
+    }
+    document.querySelector('.lighting-shots span').innerHTML = str;
+    if (gLightingShots > 0) {
+        gIsLightingShoot = true;
+    }
+    if (!gHero.isShoot && gIsLightingShoot) shooting();
+    if (gLightingShots === 0) {
+        gIsLightingShoot = false;
+        console.log('no laser left');
+        return;
+    }
+}
+
+function blowThemUp() {
+    blowUpNegs(gLaser.pos.i, gLaser.pos.j, gBoard);
 }
 
 function blinkLaser(pos) {
-    if (gLaser.pos.i < 1) {
-        console.log('Out Of Border');
-        clearShootAndInterval();
-    }
-    //Clear last position
-    gBoard[gLaser.pos.i][gLaser.pos.i].gameObject = '';
-    updateCell(pos, '');
+    gHero.isShoot = true;
 
-    //Update new position
-    gLaser.pos.i--;
-    gBoard[gLaser.pos.i][gLaser.pos.i].gameObject = LASER;
+    if (pos.i === 0) {
+        updateCell(pos, '');
+        clearShootAndInterval();
+        return;
+    }
+
+    var nextCell = gBoard[pos.i - 1][pos.j];
+    if (nextCell.gameObject === ALIEN) {
+        updateCell(pos, '');
+        clearShootAndInterval();
+        handleAlienHit(pos);
+        console.log(gBoard);
+        return;
+    }
+
+    if (nextCell.gameObject === SPACECANDY) {
+        console.log('hi');
+        gScore += 50;
+        document.querySelector('h2 span').innerHTML = gScore;
+        ALIEN_SPEED = Infinity;
+        setTimeout(function () { ALIEN_SPEED = 500 }, 3000);
+    }
+    //Update Last cell
+    updateCell(pos, '');
+    //Update Nen cell
+    pos.i--;
     updateCell(pos, LASER);
 
-    var nextCell = gBoard[gLaser.pos.i - 1][pos.j];
-    var currCell = gBoard[gLaser.pos.i][pos.j]
-
-    if (nextCell.gameObject === ALIEN) {
-        console.log('alien');
-
-        nextCell.gameObject = '';
-        updateCell(pos, '');
-
-        gLaser.pos.i--;
-        currCell.gameObject = '';
-        updateCell(pos, '');
-        clearShootAndInterval();
-
-
-        gGame.aliensCount++;
-        document.querySelector('h2 span').innerHTML = gGame.aliensCount * 10;
-        console.log(gGame.aliensCount);
-
-    }
-    checkVictory();
-
 }
+
+
+
 
 function clearShootAndInterval() {
     clearInterval(gLaserInterval);

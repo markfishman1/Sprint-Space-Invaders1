@@ -1,12 +1,14 @@
 'use strict'
-const ALIEN_SPEED = 500;
+var ALIEN_SPEED = 1000;
 var gIntervalAliens;
-var gAliensTopRowIdx = 2;
-var gAliensBottomRowIdx = 5;
+var gAliensTopRowIdx = 1;
+var gAliensBottomRowIdx = 4;
 var gIsAlienFreeze = true;
 
 var gMoveRightInterval;
 var gMoveLeftInterval;
+var gMoveAliens;
+var gGraveYard = [];
 
 function createAliens(board) {
     for (var i = gAliensTopRowIdx; i < gAliensBottomRowIdx; i++) {
@@ -14,6 +16,18 @@ function createAliens(board) {
             board[i][j].gameObject = ALIEN;
         }
     }
+}
+
+function handleAlienHit(pos) {
+    gGame.aliensCount++;
+    gScore += 10;
+    if (gGame.aliensCount === TOTAL_ALIENS) {
+        endGame('win')
+    }
+    updateCell({ i: pos.i - 1, j: pos.j }, DEAD);
+    gGraveYard.push({ i: pos.i - 1, j: pos.j })
+    document.querySelector('h2 span').innerHTML = gScore;
+
 }
 
 function checkFirstAlienPos(board) {
@@ -28,67 +42,131 @@ function checkFirstAlienPos(board) {
 }
 
 function checkFirstAlienPosFromRight(board) {
-    for (var i = board.length; i > 0; i--) {
-        for (var j = board[0].length; j > 0; j--) {
+
+    var length = board.length - 1;
+
+    for (var i = 0; i < board.length; i++) {
+        for (var j = length; j > 0; j--) {
             var currCell = board[i][j];
             if (currCell.gameObject === ALIEN) {
                 return { i, j };
             }
         }
     }
-
 }
+
 function shiftBoardRight(board) {
+    if (gGame.isOn) {
 
-    var firstAlienPos = checkFirstAlienPos(gBoard);
-    var iForLoop = firstAlienPos.i + ALIENS_ROW_COUNT;
-    var jForLoop = firstAlienPos.j + ALIENS_ROW_LENGTH;
+        var firstAlienPos = checkFirstAlienPos(board);
+        var iForLoop = firstAlienPos.i + ALIENS_ROW_COUNT;
+        var jForLoop = firstAlienPos.j + ALIENS_ROW_LENGTH;
 
-    for (var i = firstAlienPos.i; i < iForLoop; i++) {
-        for (var j = firstAlienPos.j; j < jForLoop; j++) {
-            var currCell = board[i][j];
-            if (currCell.gameObject === ALIEN) {
-                j++;
-                updateCell({ i, j }, ALIEN);
+        for (var i = firstAlienPos.i; i < iForLoop; i++) {
+            for (var j = firstAlienPos.j; j < jForLoop; j++) {
+                updateCell({ i, j: j + 1 }, ALIEN);
+
+                if (j === board.length - 2 && i === iForLoop - 1) {
+                    clearInterval(gMoveRightInterval);
+                    setTimeout(shiftBoardDown, ALIEN_SPEED, board);
+                    setTimeout(function () { gMoveLeftInterval = setInterval(shiftBoardLeft, ALIEN_SPEED, board) }, ALIEN_SPEED);
+                }
             }
-            if (j === gBoard.length - 1) {
-                clearInterval(gMoveRightInterval);
-                shiftBoardDown(gBoard);
-                gMoveRightInterval = null;
-            }
+            updateCell({ i: i, j: firstAlienPos.j }, '');
         }
-        updateCell({ i: i, j: firstAlienPos.j }, '');
+
+        renderDeadAliensRight(gGraveYard);
     }
-    console.log(gMoveRightInterval);
 
 }
+
+function renderDeadAliensRight(arr) {
+    for (var i = 0; i < arr.length; i++) {
+        var currCell = arr[i];
+        currCell.j = currCell.j + 1;
+        updateCell({ i: currCell.i, j: currCell.j }, DEAD);
+    }
+}
+
 
 function shiftBoardLeft(board) {
-    var firstAlienPos = checkFirstAlienPosFromRight(gBoard);
-    console.log(firstAlienPos);
-    var iForLoop = firstAlienPos.i + ALIENS_ROW_COUNT;
-    var jForLoop = firstAlienPos.j + ALIENS_ROW_LENGTH;
+    if (gGame.isOn) {
+        var firstAlienPos = checkFirstAlienPosFromRight(board);
+        // console.log(firstAlienPos);
+        var iForLoop = firstAlienPos.i + ALIENS_ROW_COUNT;
+        var jForLoop = firstAlienPos.j - ALIENS_ROW_LENGTH;
 
+        for (var i = firstAlienPos.i; i < iForLoop; i++) {
+            for (var j = firstAlienPos.j; j > jForLoop; j--) {
+                updateCell({ i, j: j - 1 }, ALIEN);
 
+                if (j <= 1 && i === iForLoop - 1) {
+                    clearInterval(gMoveLeftInterval);
+                    setTimeout(shiftBoardDown, ALIEN_SPEED, board);
+                    setTimeout(moveAliens, ALIEN_SPEED);
+                }
+            }
+            updateCell({ i: i, j: firstAlienPos.j }, '');
+        }
+        renderDeadAliensLeft(gGraveYard);
+    }
+
+}
+
+function renderDeadAliensLeft(arr) {
+    for (var i = 0; i < arr.length; i++) {
+        var currCell = arr[i];
+        currCell.j = currCell.j - 1;
+        updateCell({ i: currCell.i, j: currCell.j }, DEAD);
+    }
 }
 
 function shiftBoardDown(board) {
-    var firstAlienPos = checkFirstAlienPos(gBoard);
+    if (gGame.isOn) {
+        var firstAlienPos = checkFirstAlienPos(board);
+        console.log(firstAlienPos);
 
-    var iForLoop = firstAlienPos.i + ALIENS_ROW_COUNT;
-    var jForLoop = firstAlienPos.j + ALIENS_ROW_LENGTH;
+        var iForLoop = firstAlienPos.i + ALIENS_ROW_COUNT;
+        //מקור הבאג שהחייזרים קופצים בלשבים נמוכים למטה כמה שורות
+        //JFORLOOP חייב להיות דינמי
+        var jForLoop = firstAlienPos.j + ALIENS_ROW_LENGTH;
 
-    for (var i = firstAlienPos.i; i < iForLoop; i++) {
-        i++
-        for (var j = firstAlienPos.j; j < jForLoop; j++) {
-            console.log('hi');
-            updateCell({ i, j }, ALIEN);
-            updateCell({ i: firstAlienPos.i, j }, '');
+        for (var i = firstAlienPos.i; i < iForLoop; i++) {
+            for (var j = firstAlienPos.j; j < jForLoop; j++) {
+                updateCell({ i: i + 1, j }, ALIEN);
+                updateCell({ i: firstAlienPos.i, j }, '');
+                console.log(i);
+                if (i === gBoard.length - 3) {
+                    endGame('lose');
+                }
+            }
         }
+        renderDeadAliensDown(gGraveYard);
     }
-    gMoveLeftInterval = setInterval(shiftBoardLeft, 1000, gBoard);
 }
 
+function renderDeadAliensDown(arr) {
+    for (var i = 0; i < arr.length; i++) {
+        var currCell = arr[i];
+        currCell.i = currCell.i + 1;
+        updateCell({ i: currCell.i, j: currCell.j }, DEAD);
+    }
+}
+
+
 function moveAliens() {
-    gMoveRightInterval = setInterval(shiftBoardRight, 1000, gBoard)
+    // gIsAlienFreeze = true;
+    if (!gIsAlienFreeze) {
+        gMoveRightInterval = setInterval(shiftBoardRight, ALIEN_SPEED, gBoard);
+    }
+}
+
+function setIntervalLimited(callback, interval, x) {
+
+    for (var i = 0; i < x; i++) {
+        setTimeout(callback, i * interval);
+        console.log('First ');
+    }
+    // setTimeout(shiftBoardDown, 2000, gBoard);
+
 }

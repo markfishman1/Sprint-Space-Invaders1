@@ -2,15 +2,22 @@
 
 
 const BOARD_SIZE = 14;
-const ALIENS_ROW_LENGTH = 9
-const ALIENS_ROW_COUNT = 3
-const HERO = '♆';
+const ALIENS_ROW_LENGTH = 9;
+const ALIENS_ROW_COUNT = 3;
+const TOTAL_ALIENS = ALIENS_ROW_COUNT * ALIENS_ROW_LENGTH;
+const HERO = '🤖';
 const ALIEN = '👽';
-const LASER = '⤊';
 const SKY = 'SKY';
 const EARTH = 'EARTH';
+const SPACECANDY = '🍪';
+const DEAD = '';
+const EMPTY = '';
+var LASER = '⤊';
 
-
+var gIsLightingShoot;
+var gLightingShots;
+var gScore;
+var gSpaceCandyInterval;
 var gLaserInterval;
 var gBoard;
 var gGame =
@@ -21,13 +28,22 @@ var gGame =
 
 
 function init() {
-    gGame.isOn = true;
-    gGame.aliensCount = 0;
+    gLightingShots = 3;
+    gScore = 0;
     gBoard = createBoard();
-    console.table(gBoard);
     createHero(gBoard);
     createAliens(gBoard);
     renderBoard(gBoard);
+    document.querySelector('h2 span').innerText = gScore;
+    gSpaceCandyInterval = setInterval(addSpaceCandy, 8000);
+    startGame();
+}
+
+function startGame() {
+    gGame.isOn = true;
+    gIsAlienFreeze = false;
+    moveAliens();
+
 }
 
 function createBoard() {
@@ -48,7 +64,7 @@ function createBoard() {
 }
 
 function renderBoard(board) {
-    var strHTML = '<table border="1"><tbody>';
+    var strHTML = '<table><tbody>';
     for (var i = 0; i < board.length; i++) {
         strHTML += '<tr>';
         for (var j = 0; j < board[0].length; j++) {
@@ -71,28 +87,14 @@ function updateCell(pos, gameObject = null) {
     elCell.innerHTML = gameObject;
 }
 
-function checkVictory() {
-    var aliensCount = countAliens(gBoard);
-    console.log('Aliens left:', aliensCount);
-    if (aliensCount === 0) {
-        gGame.isOn = false;
-        openModal();
-        document.querySelector('.modal span').innerHTML = 'GG You Have Saved The Earth!😎'
-    }
+function endGame(winOrLose) {
+    clearIntervals();
+    gGame.isOn = false;
+    var endGameAnouncment = (winOrLose === 'win') ? 'GG You Have Saved The Earth!😎' : 'Alien Have Invaded Planet Earth,Youve Lost 😫';
+    openModal();
+    document.querySelector('.modal span').innerHTML = endGameAnouncment;
 }
 
-function countAliens(board) {
-    var aliensCount = 0;
-    for (var i = 0; i < board.length; i++) {
-        for (var j = 0; j < board[0].length; j++) {
-            if (board[i][j].gameObject === ALIEN) {
-                aliensCount++;
-            }
-
-        }
-    }
-    return aliensCount;
-}
 
 function openModal() {
     document.querySelector('.modal').style.display = 'block';
@@ -103,6 +105,38 @@ function closeModal() {
 }
 
 function restartGame() {
-    init()
+    clearIntervals();
+    init();
     closeModal();
+}
+function pauseGame() {
+    if (gGame.isOn) {
+        gGame.isOn = false
+        document.querySelector('.pause-button').innerText = 'Start';
+    } else {
+        gGame.isOn = true;
+        document.querySelector('.pause-button').innerText = 'Pause';
+    }
+
+}
+
+function addSpaceCandy() {
+    var emptyCells = getFirstRowEmptyCells(gBoard);
+    var emptyCell = emptyCells[getRandomInt(0, emptyCells.length - 1)];
+    updateCell(emptyCell, SPACECANDY);
+    setTimeout(function () { updateCell(emptyCell, '') }, 5000);
+}
+
+function getFirstRowEmptyCells(board) {
+    var emptyCells = []
+    for (var j = 0; j < gBoard[0].length; j++) {
+        if (!board[0][j].gameObject) emptyCells.push({ i: 0, j });
+    }
+    return emptyCells;
+}
+
+function clearIntervals() {
+    clearInterval(gSpaceCandyInterval);
+    clearInterval(gMoveLeftInterval)
+    clearInterval(gMoveRightInterval)
 }

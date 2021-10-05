@@ -1,8 +1,18 @@
 body {
-    background-color: rgb(156, 142, 142);
+    background-image: url(../img/img.jpg);
     color: white;
     text-align: center;
-    font-family: Georgia, 'Times New Roman', Times, serif;
+    font-family: retro;
+    font-weight: 100;
+    /* font-family: Georgia, 'Times New Roman', Times, serif;
+    */
+}
+
+@font-face {
+    font-family: retro;
+    src: url(../fonts/Retro.ttf);
+    font-style: normal;
+    font-weight: 100;
 }
 
 .modal {
@@ -10,6 +20,40 @@ body {
     display: none;
     height: 100px;
     width: 150px;
+}
+
+.h2 {
+    display: inline-block;
+}
+
+.lighting-shots {
+    display: inline-block;
+}
+
+.buttons {
+    margin: auto;
+    width: 300px;
+    height: 50px;
+}
+
+.pause-button {
+    border: 1px solid rgb(43, 12, 71);
+    width: 100px;
+    height: 30px;
+    background-color: rgb(171, 100, 237);
+    color: chartreuse;
+    font-size: 1rem;
+    padding: 3px;
+}
+
+.restart-button {
+    border: 1px solid rgb(43, 12, 71);
+    width: 100px;
+    height: 30px;
+    background-color: rgb(171, 100, 237);
+    color: chartreuse;
+    font-size: 1rem;
+    padding: 3px;
 }
 
 .modal span {
@@ -21,23 +65,22 @@ body {
     height: 40px;
     text-align: center;
     font-size: 1.5em;
-    border-radius: 3px;
+    /* border-radius: 3px; */
     /* color: blue; */
     /* margin: auto; */
 }
 
-.sky {
-    background-color: rgb(55, 55, 121);
-}
-
 .earth {
-    background-color: chartreuse;
+    background-image: linear-gradient(rgb(100, 1, 100), rgba(30, 30, 136, 0.781), rgba(55, 55, 172, 0.664), rgb(141, 214, 238), chartreuse);
+    /* background-color: chartreuse; */
 }
 
 .board-container {
-    background-color: rgb(167, 156, 156);
+    /* border-collapse: collapse; */
+    margin-bottom: 100px;
+    background-color: rgba(27, 7, 26, 0.568);
     width: 605px;
-    height: 650px;
+    height: 620px;
     border: 7px solid black;
     border-radius: 20px;
     margin: 0 auto;

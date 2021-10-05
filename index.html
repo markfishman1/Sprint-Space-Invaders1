@@ -10,11 +10,19 @@
 </head>
 
 <body onload="init()" onkeyup="moveHero(event)" onkeydown="shoot(event)">
-    <h2>Score: <span>0</span></h2>
+    <h1>Space Invaders</h1>
+    <h2>Score: <span></span></h2>
+    <h2 class='lighting-shots'>Lighting Shots:<span>⚡⚡⚡</span></h2>
+
+    <div class="buttons">
+        <button class="restart-button" onclick="restartGame()">Restart</button>
+        <button class="pause-button" onclick="pauseGame()">Pause</button>
+    </div>
     <div class="modal"><span></span><br>
         <button onclick="restartGame()">Restart</button>
         <button onclick="closeModal()">X</button>
     </div>
+
     <div class="board-container"></div>
     <script src="js/utils.js"></script>
     <script src="js/game.js"></script>
